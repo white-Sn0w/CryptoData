@@ -10,6 +10,8 @@ from typing import Dict
 from datetime import datetime
 from tqdm import tqdm
 
+import shutil
+
 import time
 
 
@@ -31,10 +33,18 @@ class MarketData():
     updated_market_data = self.request_market_data_from_cmc(active_instruments_enriched)
 
     if not updated_market_data.empty: 
-      self.market_data = pd.concat([self.market_data, updated_market_data])
-      self.market_data.to_parquet("usd_market_data.parquet", index=False)  
-      shutil.copy('usd_market_data.parquet', 'drive/My Drive/[6] CryptoData/Data')
+      #Ensuring that the newly added data has the same data type as the original data. 
+      updated_market_data = updated_market_data.astype(self.market_data.dtypes)
+      
+      #Removing all the nan, inf, and -inf values in updated_market_data
+      updated_market_data.replace(0, np.nan, inplace=True)
+      updated_market_data.replace(np.inf, np.nan, inplace=True)
+      updated_market_data.replace(-np.inf, np.nan, inplace=True)
 
+      self.market_data = pd.concat([self.market_data, updated_market_data])
+      self.market_data.to_parquet("usd_market_data.parquet")
+      shutil.copy('usd_market_data.parquet', 'drive/My Drive/[6] CryptoData/Data') 
+    
   def fetch_market_data_for_new_instruments(self):
     print("****************** Fetching New Data ******************")
     new_instruments = self.get_instruments_from_mapping(update=True) 
@@ -155,10 +165,6 @@ class MarketData():
 
       return information
 
-  def run(self): 
-    self.update_market_data()
-    print()
-    self.fetch_market_data_for_new_instruments()
 
 
 

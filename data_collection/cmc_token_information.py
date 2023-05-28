@@ -3,7 +3,7 @@ from datetime import datetime
 
 import datetime
 import pandas as pd
-
+import shutil
 import uuid
 
 """#Class"""
@@ -34,9 +34,12 @@ class TokenInformation():
 
     # Add the 'updated_at' column with the current date
     self.mapping['updated_at'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
-    
-    print("Success: Updated Existing Asset Information.")
 
+    self.adjust_dtypes()
+
+    self.mapping.to_parquet("mapping.parquet")
+    shutil.copy('mapping.parquet', 'drive/My Drive/[6] CryptoData/Data')
+                
   def add_new_assets(self): 
     response_df = self.request_cmc_assets()
 
@@ -68,13 +71,15 @@ class TokenInformation():
     # Append the new assets to the mapping dataframe
     self.mapping = pd.concat([self.mapping, new_assets], ignore_index=True)
 
-    print("Success: Added new asset information.")
+    self.adjust_dtypes()
 
-  def run(self): 
-    self.update_existing_assets()
-    self.add_new_assets()
+    self.mapping.to_parquet("mapping.parquet")
+    shutil.copy('mapping.parquet', 'drive/My Drive/[6] CryptoData/Data')
 
-    self.mapping.to_csv("mapping.csv", index=False)
-    shutil.copy('mapping.csv', 'drive/My Drive/[6] CryptoData/Data/')
+  def adjust_dtypes(self): 
+    self.mapping["is_active"] = self.mapping["is_active"].astype(bool)
+    self.mapping["first_historical_data"] = pd.to_datetime(self.mapping["first_historical_data"])
+    self.mapping["last_historical_data"] = pd.to_datetime(self.mapping["last_historical_data"])
+    self.mapping["updated_at"] = pd.to_datetime(self.mapping["updated_at"])
+    
 
-    print("Success: Exported updated mapping file.")

@@ -29,6 +29,7 @@ class MarketCap():
         if data_list:
             updated_market_cap = pd.concat(data_list)  # Concatenate the accumulated DataFrames
             return updated_market_cap
+        
         else:
             return None
 
@@ -41,18 +42,14 @@ class MarketCap():
             # Update the market_cap DataFrame
             # Get the column names and dtypes from the source dataframe
             updated_market_cap = updated_market_cap.astype(self.market_cap.dtypes)
+
             updated_market_cap["tags"] = updated_market_cap["tags"].astype(str)
             updated_market_cap["quotes"] = updated_market_cap["quotes"].astype(str)
     
-            #updated_market_cap = updated_market_cap.astype(dict(zip(updated_market_cap.columns, data_types)))
-
             self.market_cap = pd.concat([self.market_cap, updated_market_cap])
 
         return self.market_cap
-            #self.market_cap.to_csv("market_cap.csv",index=False)
-
-            #shutil.copy('market_cap.csv', 'drive/My Drive/[6] CryptoData/Data/')
-
+            
     def _get_most_recent_date(self):
         # Convert 'lastUpdated' column to datetime
         self.market_cap['lastUpdated'] = pd.to_datetime(self.market_cap['lastUpdated'])
